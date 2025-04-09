@@ -17,13 +17,27 @@ These dependencies can either be installed as a stack (e.g. LAMP, XAMPP, etc.) o
 phpMyAdmin is a free software tool written inh PHP, intended to handle the administration of MySQL over the Web. phpMyAdmin may be included in the aforementioned technology stacks, otherwise it has to be installed manually.
 
 
+## Configuration (Environment Variables)
+
+For security and easier configuration across different environments (development, production), this project is designed to use environment variables to store database credentials instead of hardcoding them in the PHP files.
+
+### Required Environment Variables
+
+You need to define the following environment variables so the application can connect to the database:
+
+*   `MYSQL_HOST`: The hostname or IP address of your database server (e.g., `localhost`, `127.0.0.1`).
+*   `MYSQL_DATABASE`: The name of the database to use (e.g., `dbdemo`).
+*   `MYSQL_USER`: The username for connecting to the database.
+*   `MYSQL_PASSWORD`: The password for the specified database user.
+
+
 ## Project Structure
 
 After installing and configuring the software dependencies for this project, the files of this repository must be placed in the driectory specified by Apache configuration files as "DocumentRoot". 
 
 Most of the AMP(Apache-MySQL-PHP) stacks contain a folder named "htdocs", which is preconfiguerd as the "DocumentRoot" driectory. In these cases, the repo files must be copied in that folder.
 
-_The demo's toy database is created and populated by_ `db-project-demo.sql`.
+_The demo's toy database is created and populated by_ `ddl.sql`.
 
 
 ## Note for Linux users

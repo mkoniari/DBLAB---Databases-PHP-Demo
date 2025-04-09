@@ -1,32 +1,21 @@
-/*
-Navicat MySQL Data Transfer
 
-Source Server         : db-project-demo
-Source Server Version : 80022
-Source Host           : localhost:3306
-Source Database       : db-project-demo
-
-Target Server Type    : MYSQL
-Target Server Version : 80022
-File Encoding         : 65001
-
-Date: 2022-03-03 14:01:37
-*/
-
-SET FOREIGN_KEY_CHECKS=0;
 
 -- ----------------------------
 -- Create database
 -- ----------------------------
-CREATE SCHEMA demo;
-USE demo;
+-- CREATE SCHEMA dbdemo IF NOT EXISTS;
+-- USE dbdemo;
+
+
+
+SET FOREIGN_KEY_CHECKS=0;
 
 -- ----------------------------
 -- Table structure for grades
 -- ----------------------------
 DROP TABLE IF EXISTS `grades`;
 CREATE TABLE `grades` (
-  `id` int NOT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
   `course_name` varchar(45) NOT NULL,
   `grade` int NOT NULL CHECK (`grade` >= 0 AND `grade` <= 100),
   `student_id` int NOT NULL,
@@ -78,6 +67,7 @@ INSERT INTO `students` VALUES ('7', 'Charlotte', 'Shanahan', 'Damon_Cremin@yahoo
 INSERT INTO `students` VALUES ('8', 'Pete', 'Bauch', 'Aisha55@yahoo.com');
 INSERT INTO `students` VALUES ('9', 'Lori', 'Baumbach', 'Jude8@yahoo.com');
 INSERT INTO `students` VALUES ('10', 'Ignacio', 'Kuhn', 'Shea_Hayes@hotmail.com');
-INSERT INTO `students` VALUES ('11', 'Marsha', 'O\'Kon', 'Brigitte.Macejkovic@gmail.com');
+INSERT INTO `students` VALUES ('11', 'Marsha', 'O\'Kon', 'Brigitte_Macejkovic@gmail.com');
 INSERT INTO `students` VALUES ('12', 'Lora', 'Mann', 'Orland_Welch@hotmail.com');
+
 SET FOREIGN_KEY_CHECKS=1;

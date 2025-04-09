@@ -1,81 +1,107 @@
-<!DOCTYPE html>
-<html lang = "en">
+<?php
+// Set page titles for header.php
+$pageTitle = "Delete Grade";
+$navBarTitle = "Databases PHP Demo - Delete Grade";
+include 'header.php';
 
-<head>
-    <meta charset = "utf-8">
-    <meta name = "viewport" content = "width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>
-        Databases PHP Demo
-    </title>
-    <link rel = "stylesheet" href = "css/styles.css">
-    <link rel = "stylesheet" href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel = "stylesheet" href = "bootstrap/css/bootstrap.min.css">
-    
+include 'db_connection.php'; // Include connection file
+$conn = OpenCon(); // Establish connection
 
-</head>
+$student_id = null;
+$grade_id = null;
+$course_name = '';
+$grade_value = '';
+$student_name = '';
+$student_surname = '';
+$error_message = '';
+$success_message = '';
+$show_confirmation = false;
 
+// --- Input Validation & Fetching Data ---
+if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT) &&
+    isset($_GET['grade_id']) && filter_var($_GET['grade_id'], FILTER_VALIDATE_INT))
+{
+    $student_id = (int)$_GET['id'];
+    $grade_id = (int)$_GET['grade_id'];
 
-<body>
-    <nav class="navbar navbar-light navbar-expand-md" id="nav-bar">
-        <div id="navbar-div" class="container-fluid">
-            <a class="navbar-brand" id="nav-bar-text">Databases PHP Demo - Delete Grade Page</a>
-            <a id="navbar-items" href="/Databases-PHP-Demo/dbdemo/">
-                <i class="fa fa-home "></i> Landing
-            </a>
-        </div>
-    </nav>
+    // Fetch grade and student details using prepared statement
+    $stmt_select = $conn->prepare("SELECT g.course_name, g.grade, s.name, s.surname
+                                   FROM grades as g
+                                   JOIN students as s ON g.student_id = s.id
+                                   WHERE s.id = ? AND g.id = ?");
+    if ($stmt_select) {
+        $stmt_select->bind_param("ii", $student_id, $grade_id);
+        $stmt_select->execute();
+        $result_select = $stmt_select->get_result();
 
-    <div class="container">
+        if ($row = $result_select->fetch_assoc()) {
+            $course_name = htmlspecialchars($row['course_name']);
+            $grade_value = htmlspecialchars($row['grade']);
+            $student_name = htmlspecialchars($row['name']);
+            $student_surname = htmlspecialchars($row['surname']);
+            $show_confirmation = true; // Grade found, show confirmation
+        } else {
+            $error_message = "Error: Grade or associated student not found (Student ID: $student_id, Grade ID: $grade_id).";
+        }
+        $stmt_select->close();
+    } else {
+        $error_message = "Error preparing select statement: " . htmlspecialchars($conn->error);
+    }
+
+} else {
+    $error_message = "Invalid or missing student ID or grade ID provided.";
+}
+
+// --- Handle Deletion on POST ---
+if ($show_confirmation && isset($_POST['submit_del']) && $grade_id !== null) {
+    // Use prepared statement for DELETE
+    $stmt_delete = $conn->prepare("DELETE FROM grades WHERE id = ?");
+    if ($stmt_delete) {
+        $stmt_delete->bind_param("i", $grade_id);
+
+        if ($stmt_delete->execute()) {
+            $success_message = 'Grade record deleted successfully - Redirecting back in 5 seconds...<br>';
+            $success_message .= '<a href="./grades.php">Click here to go back to all grades now</a>';
+            // Add JavaScript redirect using function from footer.php
+            echo '<script type="text/javascript">setTimeout(function() { delayer("./grades.php"); }, 5000);</script>';
+            $show_confirmation = false; // Hide form after successful deletion
+        } else {
+            $error_message = "Error while deleting grade record: " . htmlspecialchars($stmt_delete->error);
+        }
+        $stmt_delete->close();
+    } else {
+         $error_message = "Error preparing delete statement: " . htmlspecialchars($conn->error);
+    }
+}
+
+CloseCon($conn); // Close connection
+?>
+
     <div class="row" id="row">
         <div class="col-md-12">
-            <form class="form-horizontal" name="student-form" method="POST">
-                <div class="form-group col-sm-3 mb-3">
-                <?php
+            <?php
+            // Display messages
+            if (!empty($error_message)) {
+                echo '<div class="alert alert-danger mt-3" role="alert">' . $error_message . '</div>';
+                 if (!$show_confirmation && (strpos($error_message, 'ID') !== false || strpos($error_message, 'found') !== false)) {
+                     echo '<a href="grades.php" class="btn btn-secondary mt-2">Back to Grades</a>';
+                }
+            }
+            if (!empty($success_message)) {
+                echo '<div class="alert alert-success mt-3" role="alert">' . $success_message . '</div>';
+            }
+            ?>
 
-                    include 'db_connection.php';
-                    $conn = OpenCon();
-                    
-                    $id = $_GET['id'];
-                    $grade_id = $_GET['grade_id'];
-                    $query = "SELECT g.course_name, g.grade, s.name, s.surname
-                        FROM grades as g, students as s 
-                        WHERE s.id = $id AND g.id = $grade_id";
-                    $result = mysqli_query($conn, $query);
-                    $row = mysqli_fetch_row($result);
-
-                    echo '<div class="form-group col-sm-3 mb-3">';
-                        echo '<label class = "form-label" style="width: 400px;">Are you sure you want to delete <b>' . $row[0] . ' </b>(' . $row[1] . ') grade from student <b>' . $row[2] . ' ' . $row[3] . '</b>?</label>';
-                        
-                    echo '</div>';
-
-                    if(isset($_POST['submit_del'])){
-                    
-                        $query = "DELETE FROM grades
-                                WHERE id = $grade_id";
-                        if (mysqli_query($conn, $query)) {
-                            //echo "Record updated successfully";
-                            header("Location: ./grades.php");
-                            exit();
-                        }
-                        else{
-                            echo "Error while deleting record: <br>" . mysqli_error($conn) . "<br>";
-                        }
-                    }
-
-                ?>
-                </div>
-                
-                <button class = "btn btn-primary btn-submit-custom" type = "submit" name="submit_del">Delete</button>
-                <button class = "btn btn-primary btn-submit-custom" formaction="grades.php">Back</button>
-
-            </form>
+            <?php if ($show_confirmation): ?>
+                <form class="form-horizontal mt-3" name="grade-delete-form" method="POST">
+                     <div class="form-group col-sm-6 mb-3"> <!-- Adjusted width -->
+                        <label class="form-label">Are you sure you want to delete the grade <b><?= $grade_value ?></b> for course <b><?= $course_name ?></b> from student <b><?= $student_name . ' ' . $student_surname ?></b>?</label>
+                    </div>
+                    <button class="btn btn-danger btn-submit-custom" type="submit" name="submit_del">Delete</button>
+                    <a href="grades.php" class="btn btn-secondary btn-submit-custom">Cancel</a> <!-- Use link for Cancel -->
+                </form>
+            <?php endif; ?>
+        </div>
     </div>
-    </div>
-</div>
 
-
-    <script src = "{{ url_for('static', filename = 'bootstrap/js/bootstrap.min.js') }}"></script>
-    
-</body>
-
-</html>
+<?php include 'footer.php'; ?>
